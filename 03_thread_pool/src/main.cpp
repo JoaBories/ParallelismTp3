@@ -34,7 +34,7 @@ bool run_check() {
   }
   const bool ok = nearly_equal(parallel, reference) && parallel.grid_assignment_ok();
   std::cout << (ok ? "[OK]   " : "[FAIL] ")
-            << "thread pool : grille + interactions ≡ référence\n";
+            << "thread pool : grille + interactions = reference\n";
   return ok;
 }
 
@@ -103,7 +103,7 @@ void run_window(int boid_count) {
 }  // namespace
 
 int main(int argc, char** argv) {
-  int boid_count = 80000;
+  int boid_count = 100000;
   bool check = false;
   for (int i = 1; i < argc; ++i) {
     const std::string arg = argv[i];

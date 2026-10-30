@@ -151,14 +151,11 @@ void BoidSim::rebuild_grid() {
   std::fill(cell_counts_.begin(), cell_counts_.end(), 0);
   const int n = static_cast<int>(boids_.size());
   const int w = std::max(1, worker_count_);
-  // TODO: remplacer workers par pool_.submit([...]) pour chaque plage,
-  //       puis un seul pool_.wait() (garder le même fetch_add).
-  std::vector<std::thread> workers;
-  workers.reserve(static_cast<std::size_t>(w));
+  
   for (int t = 0; t < w; ++t) {
     const int begin = n * t / w;
     const int end = n * (t + 1) / w;
-    workers.emplace_back([this, begin, end] {
+    pool_.submit([this, begin, end] {
       for (int i = begin; i < end; ++i) {
         const int c = cell_index(boids_[static_cast<std::size_t>(i)].pos);
         const int prev =
@@ -170,9 +167,8 @@ void BoidSim::rebuild_grid() {
       }
     });
   }
-  for (auto& th : workers) {
-    th.join();
-  }
+  
+  pool_.wait();
 }
 
 void BoidSim::compute_forces_range(int begin, int end, std::vector<Vec2>& forces) const {
@@ -266,18 +262,16 @@ void BoidSim::compute_forces_parallel(std::vector<Vec2>& forces) {
   const int n = static_cast<int>(boids_.size());
   const int w = std::max(1, worker_count_);
   // TODO: remplacer workers par pool_.submit([...]) puis pool_.wait().
-  std::vector<std::thread> workers;
-  workers.reserve(static_cast<std::size_t>(w));
+  
   for (int t = 0; t < w; ++t) {
     const int begin = n * t / w;
     const int end = n * (t + 1) / w;
-    workers.emplace_back([this, begin, end, &forces] {
+    pool_.submit([this, begin, end, &forces] {
       compute_forces_range(begin, end, forces);
     });
   }
-  for (auto& th : workers) {
-    th.join();
-  }
+  
+  pool_.wait();
 }
 
 void BoidSim::step(float dt) {
