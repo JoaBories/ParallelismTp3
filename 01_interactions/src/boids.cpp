@@ -219,10 +219,28 @@ void BoidSim::integrate(const std::vector<Vec2>& forces, float dt) {
 
 void BoidSim::compute_forces_parallel(std::vector<Vec2>& forces) const {
   forces.assign(boids_.size(), {});
+  
+  const int n = static_cast<int>(boids_.size());
+  std::vector<std::thread> workers;
+  workers.reserve(worker_count_);
+
+  const int sample = n / worker_count_;
+  
+  for (int id = 0; id < worker_count_; id++)
+  {
+    const int begin = id * sample;
+    const int end = std::min((id+1) * sample, n);
+    workers.emplace_back([this, begin, end, &forces]{
+      compute_forces_range(begin, end, forces);
+    });
+  }
+  
+  for (auto& worker : workers) { worker.join(); }
+  
   // TODO: découper [0, n) en worker_count_ plages, lancer un std::thread par plage
   //       appelant compute_forces_range(begin, end, forces), puis joindre.
   // Chaque thread lit la grille et n'écrit que forces[begin, end).
-  compute_forces_range(0, static_cast<int>(boids_.size()), forces);
+  //compute_forces_range(0, static_cast<int>(boids_.size()), forces);
 }
 
 void BoidSim::step(float dt) {
