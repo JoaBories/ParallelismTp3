@@ -154,15 +154,14 @@ void BoidSim::rebuild_grid() {
 
   for (int t = 0; t < w; ++t) {
     const int begin = n * t / w;
-    const int end = n * (t + 1) / w;
+    const int end = std::min(n * (t + 1) / w, n);
     workers.emplace_back([this, begin, end] {
       for (int i = begin; i < end; ++i) {
         const int c = cell_index(boids_[static_cast<std::size_t>(i)].pos);
-        // TODO: prev = atomic_ref(cell_counts_[c]).fetch_add(1, relaxed);
-        //       si prev < cell_cap_, écrire i dans cell_ids_[c * cell_cap_ + prev].
-        const int prev = cell_counts_[static_cast<std::size_t>(c)]++;  // incorrect en parallèle
-        if (prev < cell_cap_) {
-          cell_ids_[static_cast<std::size_t>(c * cell_cap_ + prev)] = i;
+        const int prev = std::atomic_ref<int>(cell_counts_[c]).fetch_add(1, std::memory_order::relaxed);
+        if (prev < cell_cap_)
+        {
+          cell_ids_[c*cell_cap_ + prev] = i;
         }
       }
     });

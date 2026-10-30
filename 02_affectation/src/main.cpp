@@ -48,7 +48,7 @@ bool run_check() {
   std::cout << (assign_ok ? "[OK]   " : "[FAIL] ")
             << "chaque boid dans exactement une cellule\n";
   std::cout << (same ? "[OK]   " : "[FAIL] ")
-            << "pas parallèle ≡ référence séquentielle\n";
+            << "pas parallele = reference sequentielle\n";
   return ok;
 }
 
@@ -60,7 +60,7 @@ void run_window(int boid_count) {
   }
   
   glewExperimental = GL_TRUE;
-
+  
   if (glewInit() != GLEW_OK) {
     glfwDestroyWindow(window);
     glfwTerminate();
