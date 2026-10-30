@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.10)
+project(tp LANGUAGES CXX)
+set(TP_SOURCES src/main.cpp src/boids.cpp src/gl_utils.cpp src/thread_pool.cpp)
+include("${CMAKE_CURRENT_LIST_DIR}/../../cmake_modules/TpGlfw.cmake")
+add_subdirectory(corrige)
